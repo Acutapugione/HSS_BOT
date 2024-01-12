@@ -1,7 +1,11 @@
+import aiohttp
 import asyncio
+
 from .. import router
 from .. keyboards import AuthKeyboard
 from .. models import User
+from .. config import Config 
+from .. utils import fetch_auth
 from aiogram import F
 from aiogram.filters import Command
 from aiogram.types import (
@@ -40,7 +44,6 @@ async def wrong_contact(message: Message, state: FSMContext) -> None:
     )
     await state.set_state(Auth.contact)
 
-
 @router.message(Auth.contact,
                 F.content_type == "contact",
                 F.from_user.id == F.contact.user_id,)
@@ -55,14 +58,17 @@ async def contact(message: Message, state: FSMContext) -> None:
     await send_auth_request(message=message, state=state)
 
 
+        
 async def send_auth_request(message: Message, state: FSMContext):
     data = await state.get_data()
     print(data)
     await asyncio.sleep(10)
     contact = data.get("contact")
     user = User(id=contact.get("user_id"), phone=contact.get("phone_number"), )
+    
     #TODO: send post request with user in body to API
-     
+    await fetch_auth(user=user)
+
     await state.clear()
     await message.answer(
         f"Дякую {hbold(message.from_user.full_name)}, за терпіння. Вітаємо, авторизація пройшла успішно!"

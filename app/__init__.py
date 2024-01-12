@@ -17,16 +17,15 @@ from aiogram.types import (
 from dotenv import load_dotenv
 from . enums import Settings
 
+load_dotenv()
 router = Router()
 
+from . config import Config 
 from . menu import Auth
 
 
 async def main():
-    load_dotenv()
-    TOKEN = getenv(Settings.TOKEN)
-    print(TOKEN)
-    bot = Bot(token=TOKEN, parse_mode=ParseMode.HTML)
+    bot = Bot(token=Config.TOKEN, parse_mode=ParseMode.HTML)
     dp = Dispatcher()
     dp.include_router(router)
     await dp.start_polling(bot)
