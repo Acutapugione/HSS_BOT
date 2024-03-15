@@ -15,17 +15,38 @@ from aiogram.types import (
     ReplyKeyboardRemove,
 )
 from dotenv import load_dotenv
+load_dotenv()
+
+from app.utils.api_worker import API_Worker
 from . enums import Settings
 
-load_dotenv()
 router = Router()
 
 from . config import Config 
 from . menu import Auth
 
+bot = Bot(token=Config.TOKEN, parse_mode=ParseMode.HTML)
+api_worker = API_Worker()
+
+
+async def background_on_start() -> None:
+    """background task which is created when bot starts"""
+    while True:
+        await asyncio.sleep(5)
+        print("Hello World!")
+        messages = await api_worker.get_messages(lambda x: x.get("is_sended")==False and x.get("telegram_id") is not None)
+        if messages:
+            for message in messages:
+                await bot.send_message(message.get("telegram_id"), message.get("text"))
+                await api_worker.mark_as_read_message(message)
+
+async def on_bot_start_up(dispatcher: Dispatcher) -> None:
+    """List of actions which should be done before bot start"""
+    asyncio.create_task(background_on_start())  # creates background task
 
 async def main():
-    bot = Bot(token=Config.TOKEN, parse_mode=ParseMode.HTML)
+    
     dp = Dispatcher()
+    dp.startup.register(on_bot_start_up)
     dp.include_router(router)
     await dp.start_polling(bot)
