@@ -30,22 +30,20 @@ api_worker = API_Worker()
 
 
 async def background_on_start() -> None:
-    """background task which is created when bot starts"""
     while True:
-        await asyncio.sleep(5)
-        print("Hello World!")
+        await asyncio.sleep(6)
         messages = await api_worker.get_messages(lambda x: x.get("is_sended")==False and x.get("telegram_id") is not None)
         if messages:
             for message in messages:
                 await bot.send_message(message.get("telegram_id"), message.get("text"))
                 await api_worker.mark_as_read_message(message)
 
+
 async def on_bot_start_up(dispatcher: Dispatcher) -> None:
-    """List of actions which should be done before bot start"""
-    asyncio.create_task(background_on_start())  # creates background task
+    asyncio.create_task(background_on_start())  
+
 
 async def main():
-    
     dp = Dispatcher()
     dp.startup.register(on_bot_start_up)
     dp.include_router(router)
